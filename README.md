@@ -1,6 +1,6 @@
 # FAA WMT Scheduler Downloader
 
-An automated script using Playwright to log into the FAA WMT Scheduler, navigate Okta authentication, and download the current and next pay period schedules to a JSON file. The JSON file could then be ready by (for exampel) a desktop widget to display your upcoming schedule.
+An automated script using Playwright to log into the FAA WMT Scheduler, navigate Okta authentication, and download the current and next pay period schedules to a JSON file. The JSON file could then be read by (for example) a desktop widget to display your upcoming schedule.
 
 ## Prerequisites
 - Python 3.8+

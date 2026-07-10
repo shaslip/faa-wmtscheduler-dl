@@ -145,14 +145,15 @@ def run():
             if pay_periods_processed < pay_periods_to_scrape:
                 print("End of current pay period. Looking for next pay period...")
                 
-                # Use Playwright locators to safely find the next pay period
-                page.wait_for_selector('#PayPeriodId', timeout=10000)
+                # Target the select element specifically to avoid hidden inputs with the same ID
+                dropdown_selector = 'select#PayPeriodId'
+                page.wait_for_selector(dropdown_selector, timeout=10000)
                 
                 # Get the currently selected value
-                current_value = page.locator('#PayPeriodId').input_value()
+                current_value = page.locator(dropdown_selector).input_value()
                 
                 # Get all available options in the dropdown
-                options = page.locator('#PayPeriodId option')
+                options = page.locator(f'{dropdown_selector} option')
                 count = options.count()
                 
                 next_pp_value = None
@@ -164,7 +165,7 @@ def run():
 
                 if next_pp_value:
                     print(f"Loading next pay period: {next_pp_value}")
-                    page.select_option('#PayPeriodId', next_pp_value)
+                    page.select_option(dropdown_selector, next_pp_value)
                     
                     # Wait for the page to submit and reload the schedule table
                     time.sleep(3) 

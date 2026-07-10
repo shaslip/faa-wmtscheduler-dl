@@ -29,7 +29,7 @@ An automated script using Playwright to log into the FAA WMT Scheduler, navigate
    ```env
    FAA_EMAIL="your.email@faa.gov"
    FAA_PASSWORD="YourPasswordHere"
-   FAA_INITIALS="DD"
+   FAA_INITIALS="XX"
    ```
 
 ## Usage

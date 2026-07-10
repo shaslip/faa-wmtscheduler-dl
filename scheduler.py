@@ -78,18 +78,22 @@ def login(page):
     try:
         gatekeeper_btn = page.wait_for_selector('#btnLogin', timeout=15000)
         print("Gatekeeper detected. Clicking final 'Login' button...")
-        gatekeeper_btn.click()
-        time.sleep(2) # Give the server a moment to register the click
+        
+        # Tell Playwright to wait for the website to redirect ITSELF after clicking
+        with page.expect_navigation(timeout=30000):
+            gatekeeper_btn.click()
+            
     except Exception:
-        print("Gatekeeper button not found. Moving to dashboard...")
+        print("Gatekeeper button not found or already bypassed.")
 
-    # Force navigation to the schedule in case the site's redirect hangs
-    print("Navigating directly to WorksheetView...")
-    page.goto(START_URL)
-
-    # Wait for the schedule table to appear instead of relying on the URL
-    page.wait_for_selector("#ScheduledShifts", timeout=30000)
-    print("Successfully reached the Schedule page.")
+    print("Waiting for schedule table to load...")
+    try:
+        page.wait_for_selector("#ScheduledShifts", timeout=30000)
+        print("Successfully reached the Schedule page.")
+    except Exception as e:
+        print("Failed to load schedule. Taking screenshot...")
+        page.screenshot(path="debug_dashboard_failure.png")
+        raise e
 
 def get_shift_from_page(page):
     try:
@@ -107,16 +111,18 @@ def get_current_date_text(page):
 
 def run():
     with sync_playwright() as p:
-        # Changed to headless=True to run invisibly in the background
         browser = p.chromium.launch(headless=True)
         context = browser.new_context()
         page = context.new_page()
 
         page.goto(START_URL)
+        
+        # Execute Automated Login (which now fully waits for the schedule to load)
         login(page)
-        page.wait_for_url("**/Views/WorksheetView**", timeout=30000)
+        
         print("Login confirmed. Starting scrape...")
-
+        
+        # (Keep the rest of your run() function exactly the same from here down)
         schedule_data = []
         pay_periods_to_scrape = 2 # 1 for current, 1 for next
         pay_periods_processed = 0

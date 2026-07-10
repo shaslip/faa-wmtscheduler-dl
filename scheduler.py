@@ -176,6 +176,14 @@ def run():
                     # Wait for the page to submit and reload the schedule table
                     time.sleep(3) 
                     page.wait_for_selector("#ScheduledShifts", timeout=15000)
+                    
+                    # Reset to the first day of this new pay period
+                    print("Clicking the first day of the new pay period...")
+                    first_day_link = page.locator("//table[@id='WorksheetViewDayStrip']//a[contains(@href, '/Index/')]").first
+                    if first_day_link.count() > 0:
+                        first_day_link.click()
+                        time.sleep(2) # Wait for the first day to load
+                        page.wait_for_selector("#ScheduledShifts", timeout=15000)
                 else:
                     print("No more future pay periods available in the dropdown.")
                     break

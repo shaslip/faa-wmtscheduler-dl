@@ -73,15 +73,22 @@ def login(page):
             f.write(container_html)
         raise e
 
+    # 4. Gatekeeper / Warning Page
     print("Waiting for Gatekeeper/Warning screen...")
     try:
         gatekeeper_btn = page.wait_for_selector('#btnLogin', timeout=15000)
         print("Gatekeeper detected. Clicking final 'Login' button...")
         gatekeeper_btn.click()
+        time.sleep(2) # Give the server a moment to register the click
     except Exception:
         print("Gatekeeper button not found. Moving to dashboard...")
 
-    page.wait_for_url(re.compile(r".*/WorksheetView.*"), timeout=30000)
+    # Force navigation to the schedule in case the site's redirect hangs
+    print("Navigating directly to WorksheetView...")
+    page.goto(START_URL)
+
+    # Wait for the schedule table to appear instead of relying on the URL
+    page.wait_for_selector("#ScheduledShifts", timeout=30000)
     print("Successfully reached the Schedule page.")
 
 def get_shift_from_page(page):

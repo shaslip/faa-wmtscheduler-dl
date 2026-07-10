@@ -145,15 +145,22 @@ def run():
             if pay_periods_processed < pay_periods_to_scrape:
                 print("End of current pay period. Looking for next pay period...")
                 
-                # Execute JS to find the value of the next option in the dropdown
-                next_pp_value = page.evaluate('''() => {
-                    const select = document.getElementById('PayPeriodId');
-                    const selectedIndex = select.selectedIndex;
-                    if (selectedIndex + 1 < select.options.length) {
-                        return select.options[selectedIndex + 1].value;
-                    }
-                    return null;
-                }''')
+                # Use Playwright locators to safely find the next pay period
+                page.wait_for_selector('#PayPeriodId', timeout=10000)
+                
+                # Get the currently selected value
+                current_value = page.locator('#PayPeriodId').input_value()
+                
+                # Get all available options in the dropdown
+                options = page.locator('#PayPeriodId option')
+                count = options.count()
+                
+                next_pp_value = None
+                for i in range(count):
+                    val = options.nth(i).get_attribute("value")
+                    if val == current_value and i + 1 < count:
+                        next_pp_value = options.nth(i + 1).get_attribute("value")
+                        break
 
                 if next_pp_value:
                     print(f"Loading next pay period: {next_pp_value}")

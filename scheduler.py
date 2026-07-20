@@ -99,24 +99,29 @@ def get_shift_from_page(page):
     try:
         page.wait_for_selector("#ScheduledShifts", timeout=5000)
         
-        # 1. Check Main Schedule (Reverted to your original working locator)
+        # 1. Check Main Schedule
         main_rows = page.locator(f"//table[@id='ScheduledShifts']//tr[.//a[contains(text(), '{INITIALS}')]]")
         
-        # Loop through matches to avoid accidentally grabbing nested sub-tables
         for i in range(main_rows.count()):
             row = main_rows.nth(i)
-            col0_text = row.locator("td").nth(0).inner_text().strip()
             
-            # In the real Main Schedule, column 0 is the Shift Time (e.g., '0700').
-            # In sub-tables (like Detail), column 0 is your Initials.
-            # We only return it here if it's an actual shift time.
-            if col0_text != INITIALS and col0_text != "Initials":
+            col0 = row.locator("td").nth(0)
+            if col0.count() == 0:
+                continue
+                
+            # Strip out non-breaking spaces (\xa0) so the comparison works perfectly
+            col0_text = col0.inner_text().replace('\xa0', '').strip()
+            
+            # If column 0 is your initials, we caught a nested Detail table. Skip it.
+            if col0_text != INITIALS:
                 return col0_text
                 
         # 2. Check Detail Schedule
-        detail_row = page.locator(f"//table[@id='ControllersOnDetailShifts']//tr[.//a[contains(text(), '{INITIALS}')]]")
-        if detail_row.count() > 0:
-            shift_time = detail_row.first.locator("td").nth(1).inner_text().strip()
+        # count(td) >= 2 ensures we grab the actual inner row with 3 columns, not the outer wrapper
+        detail_rows = page.locator(f"//table[@id='ControllersOnDetailShifts']//tr[.//a[contains(text(), '{INITIALS}')] and count(td) >= 2]")
+        
+        if detail_rows.count() > 0:
+            shift_time = detail_rows.first.locator("td").nth(1).inner_text().replace('\xa0', '').strip()
             return "???" if shift_time.lower() == "none" else shift_time
             
         # 3. Not found in either table

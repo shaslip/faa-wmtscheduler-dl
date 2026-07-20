@@ -98,8 +98,20 @@ def login(page):
 def get_shift_from_page(page):
     try:
         page.wait_for_selector("#ScheduledShifts", timeout=5000)
-        row = page.locator(f"//table[@id='ScheduledShifts']//tr[.//a[contains(text(), '{INITIALS}')]]")
-        return row.first.locator("td").nth(0).inner_text().strip() if row.count() > 0 else "OFF/RDO"
+        
+        # 1. Check Main Schedule
+        main_row = page.locator(f"//table[@id='ScheduledShifts']//tr[.//a[contains(text(), '{INITIALS}')]]")
+        if main_row.count() > 0:
+            return main_row.first.locator("td").nth(0).inner_text().strip()
+            
+        # 2. Check Detail Schedule
+        detail_row = page.locator(f"//table[@id='ControllersOnDetailShifts']//tr[.//a[contains(text(), '{INITIALS}')]]")
+        if detail_row.count() > 0:
+            shift_time = detail_row.first.locator("td").nth(1).inner_text().strip()
+            return "???" if shift_time.lower() == "none" else shift_time
+            
+        # 3. Not found in either table
+        return "OFF/RDO"
     except:
         return "Error"
 

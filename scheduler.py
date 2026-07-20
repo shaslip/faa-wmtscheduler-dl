@@ -99,13 +99,13 @@ def get_shift_from_page(page):
     try:
         page.wait_for_selector("#ScheduledShifts", timeout=5000)
         
-        # 1. Check Main Schedule
-        main_row = page.locator(f"//table[@id='ScheduledShifts']//tr[.//a[contains(text(), '{INITIALS}')]]")
+        # 1. Check Main Schedule (using normalize-space for an exact match)
+        main_row = page.locator(f"//table[@id='ScheduledShifts']//tr[.//a[normalize-space(text())='{INITIALS}']]")
         if main_row.count() > 0:
             return main_row.first.locator("td").nth(0).inner_text().strip()
             
         # 2. Check Detail Schedule
-        detail_row = page.locator(f"//table[@id='ControllersOnDetailShifts']//tr[.//a[contains(text(), '{INITIALS}')]]")
+        detail_row = page.locator(f"//table[@id='ControllersOnDetailShifts']//tr[.//a[normalize-space(text())='{INITIALS}']]")
         if detail_row.count() > 0:
             shift_time = detail_row.first.locator("td").nth(1).inner_text().strip()
             return "???" if shift_time.lower() == "none" else shift_time

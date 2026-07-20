@@ -99,11 +99,20 @@ def get_shift_from_page(page):
     try:
         page.wait_for_selector("#ScheduledShifts", timeout=5000)
         
-        # 1. Check Main Schedule
-        main_row = page.locator(f"//table[@id='ScheduledShifts']//tr[.//a[contains(text(), '{INITIALS}')]]")
-        if main_row.count() > 0:
-            return main_row.first.locator("td").nth(0).inner_text().strip()
+        # 1. Check Main Schedule (Reverted to your original working locator)
+        main_rows = page.locator(f"//table[@id='ScheduledShifts']//tr[.//a[contains(text(), '{INITIALS}')]]")
+        
+        # Loop through matches to avoid accidentally grabbing nested sub-tables
+        for i in range(main_rows.count()):
+            row = main_rows.nth(i)
+            col0_text = row.locator("td").nth(0).inner_text().strip()
             
+            # In the real Main Schedule, column 0 is the Shift Time (e.g., '0700').
+            # In sub-tables (like Detail), column 0 is your Initials.
+            # We only return it here if it's an actual shift time.
+            if col0_text != INITIALS and col0_text != "Initials":
+                return col0_text
+                
         # 2. Check Detail Schedule
         detail_row = page.locator(f"//table[@id='ControllersOnDetailShifts']//tr[.//a[contains(text(), '{INITIALS}')]]")
         if detail_row.count() > 0:

@@ -129,6 +129,27 @@ def get_shift_from_page(page):
     except:
         return "Error"
 
+def get_pending_swap(page, initials):
+    try:
+        table = page.locator("#tblXTECTE")
+        if table.count() == 0:
+            return False
+            
+        rows = table.locator("tr")
+        # Skip the first row (headers)
+        for i in range(1, rows.count()):
+            tds = rows.nth(i).locator("td")
+            if tds.count() >= 6:
+                cpc = tds.nth(0).inner_text().strip()
+                with_cpc = tds.nth(4).inner_text().strip()
+                status = tds.nth(5).inner_text().strip()
+                
+                if (cpc == initials or with_cpc == initials) and status.lower() == "pending":
+                    return True
+        return False
+    except:
+        return False
+
 def get_current_date_text(page):
     try:
         return page.inner_text("#lblSelectedDate").strip()
@@ -158,9 +179,14 @@ def run():
             while True:
                 current_date = get_current_date_text(page)
                 shift = get_shift_from_page(page)
-                print(f"Scraped: {current_date} -> {shift}")
+                pending_swap = get_pending_swap(page, INITIALS)
+                print(f"Scraped: {current_date} -> {shift} (Swap Pending: {pending_swap})")
 
-                schedule_data.append({"date": current_date, "shift": shift})
+                schedule_data.append({
+                    "date": current_date, 
+                    "shift": shift,
+                    "pending_swap": pending_swap
+                })
 
                 next_day_cell = page.locator("//table[@id='WorksheetViewDayStrip']//td[contains(@style, 'ffff00')]/following-sibling::td[1]")
                 if next_day_cell.count() > 0:

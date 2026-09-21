@@ -142,9 +142,9 @@ def get_pending_swap(page, initials):
             if tds.count() >= 6:
                 cpc = tds.nth(0).inner_text().strip()
                 with_cpc = tds.nth(4).inner_text().strip()
-                status = tds.nth(5).inner_text().strip()
+                status = tds.nth(5).inner_text().strip().lower()
                 
-                if (cpc == initials or with_cpc == initials) and status.lower() == "pending":
+                if (cpc == initials or with_cpc == initials) and "pending" in status:
                     return True
         return False
     except:
